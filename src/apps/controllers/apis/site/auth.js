@@ -139,15 +139,71 @@ exports.refreshToken = async (req, res) => {
     }
 };
 
-exports.loginFacebook = async (req, res) => {
+exports.loginOAuth = async (req, res) => {
     try {
-    } catch (error) {
-        return res.status(500).json(error);
-    }
-};
-
-exports.loginGoogle = async (req, res) => {
-    try {
+        let refreshToken = null;
+        let accessToken = null;
+        let customer = {};
+        const data = req.session.passport.user;
+        const email = data.emails[0].value;
+        //
+        const isEmail = await CustomerModel.findOne({ email });
+        if (isEmail) {
+            const { password, ...orther } = isEmail._doc;
+            customer = orther;
+            //
+            accessToken = await createAccessToken(customer, 'customer');
+            refreshToken = await createRefreshToken(customer, 'customer');
+            const isToken = await CustomerTokenModel.findOne({
+                customerId: customer._id
+            });
+            if (isToken) {
+                // move token to redis
+                setTokenBlacklist(isToken.accessToken);
+                setTokenBlacklist(isToken.refreshToken);
+                // delete token from dtb
+                await CustomerTokenModel.deleteOne({
+                    customerId: customer._id
+                });
+            }
+        } else {
+            let fullName = '';
+            if (data.provider === 'google') {
+                fullName = data.displayName;
+            }
+            if (data.provider === 'facebook') {
+                fullName = `${data.name.familyName} ${data.name.middleName} ${data.name.givenName}`;
+            }
+            //
+            const savedCustomer = await CustomerModel({
+                fullName,
+                email,
+                phone: 'default phone',
+                address: 'default address',
+                password: 'default password'
+            }).save();
+            const { password, ...orther } = savedCustomer._doc;
+            customer = orther;
+            //
+            accessToken = await createAccessToken(customer, 'customer');
+            refreshToken = await createRefreshToken(customer, 'customer');
+        }
+        //
+        await CustomerTokenModel({
+            customerId: customer._id,
+            accessToken,
+            refreshToken
+        }).save();
+        //
+        res.cookie('refreshToken', refreshToken, { httpOnly: true });
+        res.send(`
+            <script>
+                window.opener.postMessage({ success: true, customer: ${JSON.stringify(
+                    customer
+                )}, accessToken: '${accessToken}' }, '*');
+                window.close();
+            </script>
+        `);
     } catch (error) {
         return res.status(500).json(error);
     }

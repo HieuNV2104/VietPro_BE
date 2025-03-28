@@ -39,12 +39,12 @@ exports.show = async (req, res) => {
     try {
         const { id } = req.params;
         //
-        const slide = await SaleModel.findById(id);
+        const sale = await SaleModel.findById(id);
         //
         return res.status(200).json({
             status: 'Success',
             data: {
-                docs: slide
+                docs: sale
             }
         });
     } catch (error) {

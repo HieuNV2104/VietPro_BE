@@ -99,6 +99,8 @@ router.get('/products/:id', productSiteController.show);
 router.get('/products/:id/comments', productSiteController.comments);
 // create comment
 router.post('/products/:id/comments', productSiteController.storeComment);
+// get sale
+router.get('/sales/:id', productSiteController.getSale);
 // login customer
 router.post('/customers/login', authSiteController.loginCustomer);
 // register customer
@@ -119,14 +121,14 @@ router.get(
 router.get(
     '/auth/facebook/callback',
     passport.authenticate('facebook'),
-    authSiteController.loginFacebook
+    authSiteController.loginOAuth
 );
 // login google
 router.get('/login/google', passport.authenticate('google'));
 router.get(
     '/auth/google/callback',
     passport.authenticate('google'),
-    authSiteController.loginGoogle
+    authSiteController.loginOAuth
 );
 
 //

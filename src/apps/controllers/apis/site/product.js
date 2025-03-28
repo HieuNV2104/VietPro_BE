@@ -1,6 +1,7 @@
 const config = require('config');
 const ProductModel = require(config.get('path.models.product'));
 const CommentModel = require(config.get('path.models.comment'));
+const SaleModel = require(config.get('path.models.sale'));
 const paginaton = require(config.get('path.libs.pagination'));
 
 // get products
@@ -117,6 +118,23 @@ exports.storeComment = async (req, res) => {
         return res.status(200).json({
             status: 'success',
             data: comment
+        });
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+};
+
+exports.getSale = async (req, res) => {
+    try {
+        const { id } = req.params;
+        //
+        const sale = await SaleModel.findById(id);
+        //
+        return res.status(200).json({
+            status: 'Success',
+            data: {
+                docs: sale
+            }
         });
     } catch (error) {
         return res.status(500).json(error);
