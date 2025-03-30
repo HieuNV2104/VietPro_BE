@@ -1,4 +1,5 @@
 const config = require('config');
+const bcrypt = require('bcrypt');
 const UserModel = require(config.get('path.models.user'));
 const paginaton = require(config.get('path.libs.pagination'));
 
@@ -16,7 +17,8 @@ exports.index = async (req, res) => {
         const users = await UserModel.find(query)
             .sort({ _id: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .select('-password');
         //
         return res.status(200).json({
             status: 'Success',
@@ -38,7 +40,7 @@ exports.show = async (req, res) => {
     try {
         const { id } = req.params;
         //
-        const user = await UserModel.findById(id);
+        const user = await UserModel.findById(id).select('-password');
         //
         return res.status(200).json({
             status: 'Success',
@@ -62,7 +64,7 @@ exports.createUser = async (req, res) => {
         const user = {
             full_name,
             email,
-            password,
+            password: await bcrypt.hash(password, 10),
             role
         };
         await UserModel(user).save();
@@ -78,16 +80,25 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const { full_name, email, password, role } = req.body;
+        const { full_name, email, password, new_password, role } = req.body;
         //
-        const isUser = await UserModel.findOne({ email });
-        if (isUser && isUser._id.toString() !== id) {
-            return res.status(400).json('User exists!');
+        if ((password && !new_password) || (!password && new_password)) {
+            return res.status(400).json('Blank password!');
         }
+        const passwordCheck = (await UserModel.findById(id)).password;
+        if (password && new_password) {
+            const isMatch = await bcrypt.compare(password, passwordCheck);
+            if (!isMatch) {
+                return res.status(400).json('Wrong password!');
+            }
+        }
+        //
         const user = {
             full_name,
             email,
-            password,
+            password: new_password
+                ? await bcrypt.hash(new_password, 10)
+                : passwordCheck,
             role
         };
         await UserModel.updateOne({ _id: id }, { $set: user });

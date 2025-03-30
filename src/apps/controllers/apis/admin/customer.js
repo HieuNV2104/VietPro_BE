@@ -13,10 +13,11 @@ exports.index = async (req, res) => {
             query._id = req.query.id;
         }
         //
-        const users = await CustomertModel.find(query)
+        const customers = await CustomertModel.find(query)
             .sort({ _id: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .select('-password');
         //
         return res.status(200).json({
             status: 'Success',
@@ -25,7 +26,7 @@ exports.index = async (req, res) => {
                 page
             },
             data: {
-                docs: users,
+                docs: customers,
                 pages: await paginaton(CustomertModel, query, page, limit)
             }
         });

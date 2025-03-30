@@ -124,14 +124,13 @@ exports.order = async (req, res) => {
             totalPrice,
             newItems
         });
-
         await transporter.sendMail({
             from: `VietPro Store" <${config.get('mail.auth.user')}>`,
             to: customer.email,
             subject: 'Xác nhận đơn hàng từ Vietpro Store',
             html
         });
-
+        //
         return res.status(200).json({
             status: 'success',
             message: 'Order successfully'

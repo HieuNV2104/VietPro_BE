@@ -235,7 +235,7 @@ router.get(
     authMiddlewares.verifyAuthentication,
     userAdminController.deleteUser
 );
-// get customer
+// get customers
 router.get(
     '/admin/customers',
     authMiddlewares.verifyAuthentication,

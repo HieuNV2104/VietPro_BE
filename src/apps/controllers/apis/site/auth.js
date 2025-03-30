@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const config = require('config');
 const CustomerModel = require(config.get('path.models.customer'));
 const CustomerTokenModel = require(config.get('path.models.customerToken'));
@@ -8,6 +9,8 @@ const {
     createRefreshToken,
     setTokenBlacklist
 } = require(config.get('path.libs.handleToken'));
+const transporter = require(config.get('path.libs.transporter'));
+const ejs = require('ejs');
 
 exports.loginCustomer = async (req, res) => {
     try {
@@ -17,12 +20,12 @@ exports.loginCustomer = async (req, res) => {
         if (!isEmail) {
             return res.status(400).json('email not valid');
         }
-        const isPassword = password === isEmail.password;
-        if (!isPassword) {
+        const isMatch = await bcrypt.compare(password, isEmail.password);
+        if (!isMatch) {
             return res.status(400).json('password not valid');
         }
         //
-        if (isEmail && isPassword) {
+        if (isEmail && isMatch) {
             const { password, ...customer } = isEmail._doc;
             const accessToken = await createAccessToken(customer, 'customer');
             const refreshToken = await createRefreshToken(customer, 'customer');
@@ -73,7 +76,7 @@ exports.registerCustomer = async (req, res) => {
                 fullName,
                 email,
                 phone,
-                password,
+                password: await bcrypt.hash(password, 10),
                 address
             };
             await new CustomerModel(customer).save();
@@ -175,18 +178,34 @@ exports.loginOAuth = async (req, res) => {
                 fullName = `${data.name.familyName} ${data.name.middleName} ${data.name.givenName}`;
             }
             //
+            const newPassword = await bcrypt.hash(data.id, 10);
             const savedCustomer = await CustomerModel({
                 fullName,
                 email,
                 phone: 'default phone',
                 address: 'default address',
-                password: 'default password'
+                password: newPassword
             }).save();
             const { password, ...orther } = savedCustomer._doc;
             customer = orther;
             //
             accessToken = await createAccessToken(customer, 'customer');
             refreshToken = await createRefreshToken(customer, 'customer');
+            // send mail
+            const html = await ejs.renderFile(
+                config.get('path.views.password'),
+                {
+                    password: data.id,
+                    provider: data.provider,
+                    color: data.provider === 'google' ? 'red' : 'blue'
+                }
+            );
+            await transporter.sendMail({
+                from: `VietPro Store" <${config.get('mail.auth.user')}>`,
+                to: email,
+                subject: 'Thông báo đăng nhập thành công',
+                html
+            });
         }
         //
         await CustomerTokenModel({

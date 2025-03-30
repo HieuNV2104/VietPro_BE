@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const config = require('config');
 const UserModel = require(config.get('path.models.user'));
 const UserTokenModel = require(config.get('path.models.userToken'));
@@ -17,7 +18,7 @@ exports.loginUser = async (req, res) => {
         if (!isEmail) {
             return res.status(400).json('email not valid');
         }
-        const isPassword = password === isEmail.password;
+        const isPassword = await bcrypt.compare(password, isEmail.password);
         if (!isPassword) {
             return res.status(400).json('password not valid');
         }

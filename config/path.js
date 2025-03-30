@@ -54,7 +54,8 @@ exports.models = {
 };
 
 exports.views = {
-    mail: `${__dirname}/../src/apps/views/mail.ejs`
+    mail: `${__dirname}/../src/apps/views/mail.ejs`,
+    password: `${__dirname}/../src/apps/views/password.ejs`
 };
 
 exports.middlewares = {
