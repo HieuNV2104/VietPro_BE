@@ -11,6 +11,7 @@ const {
 } = require(config.get('path.libs.handleToken'));
 const transporter = require(config.get('path.libs.transporter'));
 const ejs = require('ejs');
+const otpGenerator = require('otp-generator');
 
 exports.loginCustomer = async (req, res) => {
     try {
@@ -101,6 +102,73 @@ exports.logoutCustomer = async (req, res) => {
         // delete token from dtb
         await CustomerTokenModel.deleteOne({ accessToken });
         return res.status(200).json('Logout Successfully');
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+};
+
+exports.getOtp = async (req, res) => {
+    try {
+        const { email } = req.body;
+        //
+        const isEmail = await CustomerModel.findOne({ email });
+        if (!isEmail) {
+            return res.status(400).json('Email not valid!');
+        }
+        const otp = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            specialChars: false
+        });
+        // send mail
+        const html = await ejs.renderFile(
+            config.get('path.views.forgotPassword'),
+            { otp }
+        );
+        await transporter(email, 'Mã OTP lấy lại mật khẩu', html);
+        // insert to redis
+        await redisClient.set(otp + email, otp, { EX: 300 });
+        //
+        return res.status(200).json('Created OTP Successfully!');
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+};
+
+exports.checkOtp = async (req, res) => {
+    try {
+        const { otp, email } = req.body;
+        const isOtp = await redisClient.get(otp + email);
+        if (!isOtp) {
+            return res.status(400).json('OTP not valid!');
+        }
+        //
+        await redisClient.del(otp + email);
+        const tmpToken = otpGenerator.generate(12, {});
+        await redisClient.set(tmpToken, email, { EX: 300 });
+        //
+        return res.status(200).json({ tmpToken });
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+};
+
+exports.updateNewPassword = async (req, res) => {
+    try {
+        const { password, tmpToken } = req.body;
+        const isTmpToken = await redisClient.get(tmpToken);
+        //
+        if (!isTmpToken) {
+            return res.status(400).json('Fail Update Password!');
+        }
+        //
+        const newPassword = await bcrypt.hash(password, 10);
+        await CustomerModel.updateOne(
+            { email: isTmpToken },
+            { $set: { password: newPassword } }
+        );
+        await redisClient.del(tmpToken);
+        //
+        return res.status(200).json('Update Password Successfully!');
     } catch (error) {
         return res.status(500).json(error);
     }

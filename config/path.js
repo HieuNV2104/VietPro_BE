@@ -56,7 +56,8 @@ exports.models = {
 
 exports.views = {
     mail: `${__dirname}/../src/apps/views/mail.ejs`,
-    password: `${__dirname}/../src/apps/views/password.ejs`
+    password: `${__dirname}/../src/apps/views/password.ejs`,
+    forgotPassword: `${__dirname}/../src/apps/views/forgotPassword.ejs`
 };
 
 exports.middlewares = {

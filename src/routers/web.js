@@ -125,6 +125,13 @@ router.post(
     authMiddlewares.verifyAuthentication,
     authSiteController.logoutCustomer
 );
+// forgot password
+router.post('/customer/forgotPassword/otp', authSiteController.getOtp); // get otp
+router.post('/customer/forgotPassword/checkOtp', authSiteController.checkOtp); // check otp
+router.post(
+    '/customer/forgotPassword/updateNewPassword',
+    authSiteController.updateNewPassword
+); // update new password
 // refreshToken
 router.get('/customer/refreshToken', authSiteController.refreshToken);
 // login facebook
