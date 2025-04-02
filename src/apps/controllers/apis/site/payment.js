@@ -139,6 +139,7 @@ exports.returnPayment = async (req, res) => {
                     'Xác nhận đơn hàng từ Vietpro Store',
                     html
                 );
+                await redisClient.del(orderId);
             }
             res.redirect(
                 `http://localhost:3000/cart?code=${vnp_Params['vnp_ResponseCode']}`
