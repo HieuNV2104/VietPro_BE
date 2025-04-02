@@ -5,5 +5,6 @@ module.exports = {
     db: require('./db'),
     mail: require('./mail'),
     path: require('./path'),
-    auth: require('./auth')
+    auth: require('./auth'),
+    payment: require('./payment')
 };

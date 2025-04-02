@@ -23,6 +23,9 @@ const customerSiteController = require(config.get(
     'path.controllers.site.customer'
 ));
 const authSiteController = require(config.get('path.controllers.site.auth'));
+const paymentSiteController = require(config.get(
+    'path.controllers.site.payment'
+));
 
 // import admin controllers
 const productAdminController = require(config.get(
@@ -51,6 +54,17 @@ const orderAdminController = require(config.get(
 const authAdminController = require(config.get('path.controllers.admin.auth'));
 
 // router site
+// vn pay
+router.post(
+    '/createPayment',
+    // authMiddlewares.verifyAuthentication,
+    paymentSiteController.createPayment
+);
+router.get(
+    '/vnpay_return',
+    // authMiddlewares.verifyAuthentication,
+    paymentSiteController.returnPayment
+);
 // update customer
 router.post(
     '/customers/:id/update',

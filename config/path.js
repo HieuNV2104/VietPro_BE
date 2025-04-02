@@ -35,7 +35,8 @@ exports.controllers = {
         slide: `${__dirname}/../src/apps/controllers/apis/site/slide`,
         banner: `${__dirname}/../src/apps/controllers/apis/site/banner`,
         customer: `${__dirname}/../src/apps/controllers/apis/site/customer`,
-        auth: `${__dirname}/../src/apps/controllers/apis/site/auth`
+        auth: `${__dirname}/../src/apps/controllers/apis/site/auth`,
+        payment: `${__dirname}/../src/apps/controllers/apis/site/payment`
     }
 };
 

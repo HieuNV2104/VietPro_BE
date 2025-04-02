@@ -34,11 +34,11 @@ exports.update = async (req, res) => {
         const customer = {
             fullName: body.fullName,
             phone: body.phone,
-            address: body.address,
-            password: body.new_password
-                ? await bcrypt.hash(body.new_password, 10)
-                : isPhone.password
+            address: body.address
         };
+        if (body.password && body.new_password) {
+            customer.password = await bcrypt.hash(body.new_password, 10);
+        }
         await CustomerModel.updateOne({ _id: id }, { $set: customer });
         return res.status(200).json({
             status: 'success',

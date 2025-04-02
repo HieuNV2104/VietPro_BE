@@ -200,12 +200,7 @@ exports.loginOAuth = async (req, res) => {
                     color: data.provider === 'google' ? 'red' : 'blue'
                 }
             );
-            await transporter.sendMail({
-                from: `VietPro Store" <${config.get('mail.auth.user')}>`,
-                to: email,
-                subject: 'Thông báo đăng nhập thành công',
-                html
-            });
+            await transporter(email, 'Thông báo đăng nhập thành công', html);
         }
         //
         await CustomerTokenModel({
