@@ -22,7 +22,7 @@ exports.verifyAuthentication = async (req, res, next) => {
                         return res.status(401).json('authentication required');
                     }
                     req.accessToken = accessToken;
-                    next();
+                    return next();
                 }
             );
         } else {
