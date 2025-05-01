@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
 const config = require('config');
+const jwt = require('jsonwebtoken');
 const { redisClient } = require(config.get('path.core.redis'));
 
 exports.verifyAuthentication = async (req, res, next) => {
